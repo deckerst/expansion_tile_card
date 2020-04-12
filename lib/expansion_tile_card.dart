@@ -30,8 +30,10 @@ class ExpansionTileCard extends StatefulWidget {
   /// Creates a single-line [ListTile] with a trailing button that expands or collapses
   /// the tile to reveal or hide the [children]. The [initiallyExpanded] property must
   /// be non-null.
-  const ExpansionTileCard({
+  ExpansionTileCard({
     Key key,
+    this.value = '',
+    ValueNotifier<String> expandedNotifier,
     this.leading,
     @required this.title,
     this.subtitle,
@@ -53,7 +55,12 @@ class ExpansionTileCard extends StatefulWidget {
     this.colorCurve = Curves.easeIn,
     this.paddingCurve = Curves.easeIn,
   })  : assert(initiallyExpanded != null),
+        this.expandedNotifier = expandedNotifier ?? ValueNotifier(null),
         super(key: key);
+
+  final String value;
+
+  final ValueNotifier<String> expandedNotifier;
 
   /// A widget to display before the title.
   ///
@@ -99,57 +106,57 @@ class ExpansionTileCard extends StatefulWidget {
   final bool initiallyExpanded;
 
   /// The padding around the outside of the ExpansionTileCard while collapsed.
-  /// 
+  ///
   /// Defaults to EdgeInsets.zero.
   final EdgeInsetsGeometry initialPadding;
 
   /// The padding around the outside of the ExpansionTileCard while collapsed.
-  /// 
+  ///
   /// Defaults to 6.0 vertical padding.
   final EdgeInsetsGeometry finalPadding;
 
   /// The inner `contentPadding` of the ListTile widget.
-  /// 
+  ///
   /// If null, ListTile defaults to 16.0 horizontal padding.
   final EdgeInsetsGeometry contentPadding;
 
   /// The background color of the unexpanded tile.
-  /// 
+  ///
   /// If null, defaults to Theme.of(context).canvasColor.
   final Color baseColor;
 
   /// The background color of the expanded card.
-  /// 
+  ///
   /// If null, defaults to Theme.of(context).cardColor.
   final Color expandedColor;
 
   /// The duration of the expand and collapse animations.
-  /// 
+  ///
   /// Defaults to 200 milliseconds.
   final Duration duration;
 
   /// The animation curve used to control the elevation of the expanded card.
-  /// 
+  ///
   /// Defaults to Curves.easeOut.
   final Curve elevationCurve;
 
   /// The animation curve used to control the height of the expanding/collapsing card.
-  /// 
+  ///
   /// Defaults to Curves.easeIn.
   final Curve heightFactorCurve;
 
   /// The animation curve used to control the rotation of the `trailing` widget.
-  /// 
+  ///
   /// Defaults to Curves.easeIn.
   final Curve turnsCurve;
 
   /// The animation curve used to control the header, icon, and material colors.
-  /// 
+  ///
   /// Defaults to Curves.easeIn.
   final Curve colorCurve;
 
   /// The animation curve used by the expanding/collapsing padding.
-  /// 
+  ///
   /// Defaults to Curves.easeIn.
   final Curve paddingCurve;
 
@@ -179,7 +186,7 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
   Animation<Color> _materialColor;
   Animation<EdgeInsets> _padding;
 
-  bool _isExpanded = false;
+  bool get _isExpanded => widget.expandedNotifier.value == widget.value;
 
   @override
   void initState() {
@@ -202,26 +209,44 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
     _iconColor = _controller.drive(_iconColorTween.chain(_colorTween));
     _elevation = _controller.drive(Tween<double>(begin: 0.0, end: widget.elevation).chain(_elevationTween));
     _padding = _controller.drive(_edgeInsetsTween.chain(_paddingTween));
-    _isExpanded = PageStorage.of(context)?.readState(context) as bool ?? widget.initiallyExpanded;
-    if (_isExpanded)
+    if (PageStorage.of(context)?.readState(context) as bool ?? widget.initiallyExpanded) {
+      widget.expandedNotifier.value = widget.value;
       _controller.value = 1.0;
+    }
+    _registerWidget(widget);
+  }
+
+  @override
+  void didUpdateWidget(ExpansionTileCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _unregisterWidget(oldWidget);
+    _registerWidget(widget);
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _unregisterWidget(widget);
     super.dispose();
   }
 
-  void _handleTap() {
+  void _registerWidget(ExpansionTileCard widget) {
+    widget.expandedNotifier.addListener(_onExpansionChanged);
+  }
+
+  void _unregisterWidget(ExpansionTileCard widget) {
+    widget.expandedNotifier.removeListener(_onExpansionChanged);
+  }
+
+  void _handleTap() => widget.expandedNotifier.value = _isExpanded ? null : widget.value;
+
+  void _onExpansionChanged() {
     setState(() {
-      _isExpanded = !_isExpanded;
       if (_isExpanded) {
         _controller.forward();
       } else {
         _controller.reverse().then<void>((void value) {
-          if (!mounted)
-            return;
+          if (!mounted) return;
           setState(() {
             // Rebuild without widget.children.
           });
@@ -229,8 +254,7 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
       }
       PageStorage.of(context)?.writeState(context, _isExpanded);
     });
-    if (widget.onExpansionChanged != null)
-      widget.onExpansionChanged(_isExpanded);
+    widget.onExpansionChanged?.call(_isExpanded);
   }
 
   Widget _buildChildren(BuildContext context, Widget child) {
@@ -258,10 +282,11 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
                       leading: widget.leading,
                       title: widget.title,
                       subtitle: widget.subtitle,
-                      trailing: widget.trailing ?? RotationTransition(
-                        turns: _iconTurns,
-                        child: const Icon(Icons.expand_more),
-                      ),
+                      trailing: widget.trailing ??
+                          RotationTransition(
+                            turns: _iconTurns,
+                            child: const Icon(Icons.expand_more),
+                          ),
                     ),
                   ),
                 ),
@@ -283,7 +308,7 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
   void didChangeDependencies() {
     final ThemeData theme = Theme.of(context);
     _headerColorTween
-      ..begin = theme.textTheme.subhead.color
+      ..begin = theme.textTheme.subtitle1.color
       ..end = theme.accentColor;
     _iconColorTween
       ..begin = theme.unselectedWidgetColor
@@ -302,6 +327,5 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
       builder: _buildChildren,
       child: closed ? null : Column(children: widget.children),
     );
-
   }
 }
