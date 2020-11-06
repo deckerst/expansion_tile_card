@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:expansion_tile_card/expansion_tile_card.dart';
+import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
@@ -39,79 +39,75 @@ class _MyHomePageState extends State<MyHomePage> {
             leading: CircleAvatar(child: Text('$index')),
             title: Text('This is item #$index'),
             subtitle: Text('Tap to see more!'),
-            children: <Widget>[
-              Divider(
-                thickness: 1.0,
-                height: 1.0,
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: Text(
-"""Hi there, I'm a drop-in replacement for Flutter's ExpansionTile.
+            child: Column(
+              children: [
+                Divider(
+                  thickness: 1.0,
+                  height: 1.0,
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Text(
+                      """Hi there, I'm a drop-in replacement for Flutter's ExpansionTile.
 
 Use me any time you think your app could benefit from being just a bit more Material.""",
-                    style: Theme.of(context)
-                        .textTheme
-                        .body1
-                        .copyWith(fontSize: 16),
+                      style: Theme.of(context).textTheme.bodyText2.copyWith(fontSize: 16),
+                    ),
                   ),
                 ),
-              ),
-              ButtonBar(
-                alignment: MainAxisAlignment.spaceAround,
-                buttonHeight: 52.0,
-                buttonMinWidth: 90.0,
-                children: <Widget>[
-                  FlatButton(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4.0)),
-                    onPressed: () {},
-                    child: Column(
-                      children: <Widget>[
-                        Icon(Icons.star),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2.0),
-                        ),
-                        Text('Save'),
-                      ],
+                ButtonBar(
+                  alignment: MainAxisAlignment.spaceAround,
+                  buttonHeight: 52.0,
+                  buttonMinWidth: 90.0,
+                  children: <Widget>[
+                    FlatButton(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                      onPressed: () {},
+                      child: Column(
+                        children: <Widget>[
+                          Icon(Icons.star),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2.0),
+                          ),
+                          Text('Save'),
+                        ],
+                      ),
                     ),
-                  ),
-                  FlatButton(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4.0)),
-                    onPressed: () {},
-                    child: Column(
-                      children: <Widget>[
-                        Icon(Icons.open_in_browser),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2.0),
-                        ),
-                        Text('Open'),
-                      ],
+                    FlatButton(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                      onPressed: () {},
+                      child: Column(
+                        children: <Widget>[
+                          Icon(Icons.open_in_browser),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2.0),
+                          ),
+                          Text('Open'),
+                        ],
+                      ),
                     ),
-                  ),
-                  FlatButton(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4.0)),
-                    onPressed: () {},
-                    child: Column(
-                      children: <Widget>[
-                        Icon(Icons.share),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2.0),
-                        ),
-                        Text('Share'),
-                      ],
+                    FlatButton(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                      onPressed: () {},
+                      child: Column(
+                        children: <Widget>[
+                          Icon(Icons.share),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2.0),
+                          ),
+                          Text('Share'),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       }),

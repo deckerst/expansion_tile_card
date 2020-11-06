@@ -11,7 +11,7 @@ library expansion_tile_card;
 import 'package:flutter/material.dart';
 
 /// A single-line [ListTile] with a trailing button that expands or collapses
-/// the tile to reveal or hide the [children].
+/// the tile to reveal or hide the [child].
 ///
 /// This widget is typically used with [ListView] to create an
 /// "expand / collapse" list entry. When used with scrolling widgets like
@@ -21,14 +21,14 @@ import 'package:flutter/material.dart';
 ///
 /// See also:
 ///
-///  * [ListTile], useful for creating expansion tile [children] when the
+///  * [ListTile], useful for creating expansion tile children when the
 ///    expansion tile represents a sublist.
 ///  * [ExpansionTile], the original widget on which this widget is based.
 ///  * The "Expand/collapse" section of
 ///    <https://material.io/guidelines/components/lists-controls.html>.
 class ExpansionTileCard extends StatefulWidget {
   /// Creates a single-line [ListTile] with a trailing button that expands or collapses
-  /// the tile to reveal or hide the [children]. The [initiallyExpanded] property must
+  /// the tile to reveal or hide the [child]. The [initiallyExpanded] property must
   /// be non-null.
   ExpansionTileCard({
     Key key,
@@ -38,10 +38,11 @@ class ExpansionTileCard extends StatefulWidget {
     @required this.title,
     this.subtitle,
     this.onExpansionChanged,
-    this.children = const <Widget>[],
+    this.child,
     this.trailing,
     this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
     this.elevation = 2.0,
+    this.expandable = true,
     this.initiallyExpanded = false,
     this.initialPadding = EdgeInsets.zero,
     this.finalPadding = const EdgeInsets.symmetric(vertical: 6.0),
@@ -84,10 +85,8 @@ class ExpansionTileCard extends StatefulWidget {
   /// the value false.
   final ValueChanged<bool> onExpansionChanged;
 
-  /// The widgets that are displayed when the tile expands.
-  ///
-  /// Typically [ListTile] widgets.
-  final List<Widget> children;
+  /// The widget that is displayed when the tile expands.
+  final Widget child;
 
   /// A widget to display instead of a rotating arrow icon.
   final Widget trailing;
@@ -101,6 +100,8 @@ class ExpansionTileCard extends StatefulWidget {
   ///
   /// Defaults to 2.0.
   final double elevation;
+
+  final bool expandable;
 
   /// Specifies if the list tile is initially expanded (true) or collapsed (false, the default).
   final bool initiallyExpanded;
@@ -248,7 +249,7 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
         _controller.reverse().then<void>((void value) {
           if (!mounted) return;
           setState(() {
-            // Rebuild without widget.children.
+            // Rebuild without widget.child.
           });
         });
       }
@@ -268,10 +269,10 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
         child: Container(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+            children: [
               InkWell(
                 customBorder: RoundedRectangleBorder(borderRadius: widget.borderRadius),
-                onTap: _handleTap,
+                onTap: widget.expandable ? _handleTap : null,
                 child: ListTileTheme.merge(
                   iconColor: _iconColor.value,
                   textColor: _headerColor.value,
@@ -282,21 +283,24 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
                       leading: widget.leading,
                       title: widget.title,
                       subtitle: widget.subtitle,
-                      trailing: widget.trailing ??
-                          RotationTransition(
-                            turns: _iconTurns,
-                            child: const Icon(Icons.expand_more),
-                          ),
+                      trailing: widget.expandable
+                          ? widget.trailing ??
+                              RotationTransition(
+                                turns: _iconTurns,
+                                child: const Icon(Icons.expand_more),
+                              )
+                          : null,
                     ),
                   ),
                 ),
               ),
-              ClipRect(
-                child: Align(
-                  heightFactor: _heightFactor.value,
-                  child: child,
+              if (child != null)
+                ClipRect(
+                  child: Align(
+                    heightFactor: _heightFactor.value,
+                    child: child,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -325,7 +329,7 @@ class _ExpansionTileCardState extends State<ExpansionTileCard> with SingleTicker
     return AnimatedBuilder(
       animation: _controller.view,
       builder: _buildChildren,
-      child: closed ? null : Column(children: widget.children),
+      child: closed ? null : widget.child,
     );
   }
 }
