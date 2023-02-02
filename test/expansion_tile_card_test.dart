@@ -174,7 +174,7 @@ void main() {
         theme: ThemeData(
           colorScheme: ColorScheme.light(secondary: _accentColor),
           unselectedWidgetColor: _unselectedWidgetColor,
-          textTheme: const TextTheme(subtitle1: TextStyle(color: _headerColor)),
+          textTheme: const TextTheme(titleMedium: TextStyle(color: _headerColor)),
         ),
         home: Material(
           child: SingleChildScrollView(
