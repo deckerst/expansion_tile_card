@@ -172,9 +172,12 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: ThemeData(
-          colorScheme: ColorScheme.light(secondary: _accentColor),
           unselectedWidgetColor: _unselectedWidgetColor,
           textTheme: const TextTheme(titleMedium: TextStyle(color: _headerColor)),
+        ).copyWith(
+          colorScheme: ColorScheme.fromSwatch().copyWith(
+            secondary: _accentColor,
+          ),
         ),
         home: Material(
           child: SingleChildScrollView(

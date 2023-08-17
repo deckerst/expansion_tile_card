@@ -31,7 +31,7 @@ class ExpansionTileCard extends StatefulWidget {
   /// the tile to reveal or hide the [child]. The [initiallyExpanded] property must
   /// be non-null.
   ExpansionTileCard({
-    Key? key,
+    super.key,
     this.value = '',
     ValueNotifier<String?>? expandedNotifier,
     this.leading,
@@ -60,8 +60,7 @@ class ExpansionTileCard extends StatefulWidget {
     this.isThreeLine = false,
     this.shadowColor = const Color(0xffaaaaaa),
     this.animateTrailing = false,
-  })  : this.expandedNotifier = expandedNotifier ?? ValueNotifier(null),
-        super(key: key);
+  })  : this.expandedNotifier = expandedNotifier ?? ValueNotifier(null);
 
   final String value;
 
@@ -154,7 +153,7 @@ class ExpansionTileCard extends StatefulWidget {
 
   ///The color of the text of the expended card
   ///
-  ///If null, defaults to Theme.of(context).accentColor.
+  ///If null, defaults to Theme.of(context).colorScheme.secondary.
   final Color? expandedTextColor;
 
   /// The duration of the expand and collapse animations.
