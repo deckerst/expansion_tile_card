@@ -33,7 +33,7 @@ class ExpansionTileCard extends StatefulWidget {
   ExpansionTileCard({
     super.key,
     this.value = '',
-    ValueNotifier<String?>? expandedNotifier,
+    this.expandedNotifier,
     this.leading,
     required this.title,
     this.subtitle,
@@ -60,11 +60,11 @@ class ExpansionTileCard extends StatefulWidget {
     this.isThreeLine = false,
     this.shadowColor = const Color(0xffaaaaaa),
     this.animateTrailing = false,
-  })  : this.expandedNotifier = expandedNotifier ?? ValueNotifier(null);
+  });
 
   final String value;
 
-  final ValueNotifier<String?> expandedNotifier;
+  final ValueNotifier<String?>? expandedNotifier;
 
   final bool isThreeLine;
 
@@ -212,7 +212,11 @@ class ExpansionTileCardState extends State<ExpansionTileCard> with SingleTickerP
   late Animation<Color?> _materialColor;
   late Animation<EdgeInsets> _padding;
 
-  bool get _isExpanded => widget.expandedNotifier.value == widget.value;
+  final ValueNotifier<String?> _internalExpandedNotifier = ValueNotifier(null);
+
+  ValueNotifier<String?> get expandedNotifier => widget.expandedNotifier ?? _internalExpandedNotifier;
+
+  bool get _isExpanded => expandedNotifier.value == widget.value;
 
   @override
   void initState() {
@@ -236,7 +240,7 @@ class ExpansionTileCardState extends State<ExpansionTileCard> with SingleTickerP
     _elevation = _controller.drive(Tween<double>(begin: widget.initialElevation, end: widget.elevation).chain(_elevationTween));
     _padding = _controller.drive(_edgeInsetsTween.chain(_paddingTween));
     if (PageStorage.of(context).readState(context) as bool? ?? widget.initiallyExpanded) {
-      widget.expandedNotifier.value = widget.value;
+      expandedNotifier.value = widget.value;
       _controller.value = 1.0;
     }
     _registerWidget(widget);
@@ -252,45 +256,42 @@ class ExpansionTileCardState extends State<ExpansionTileCard> with SingleTickerP
   @override
   void dispose() {
     _controller.dispose();
+    _internalExpandedNotifier.dispose();
     _unregisterWidget(widget);
     super.dispose();
   }
 
   void _registerWidget(ExpansionTileCard widget) {
-    widget.expandedNotifier.addListener(_onExpansionChanged);
+    expandedNotifier.addListener(_onExpansionChanged);
   }
 
   void _unregisterWidget(ExpansionTileCard widget) {
-    widget.expandedNotifier.removeListener(_onExpansionChanged);
+    expandedNotifier.removeListener(_onExpansionChanged);
   }
 
-  void _onExpansionChanged() {
-    setState(() {
-      if (_isExpanded) {
-        _controller.forward();
-      } else {
-        _controller.reverse().then<void>((void value) {
-          if (!mounted) return;
-          setState(() {
-            // Rebuild without widget.child.
-          });
-        });
-      }
-      PageStorage.of(context).writeState(context, _isExpanded);
-    });
-    widget.onExpansionChanged?.call(_isExpanded);
+  @override
+  void didChangeDependencies() {
+    final ThemeData theme = Theme.of(context);
+    _headerColorTween
+      ..begin = theme.textTheme.titleMedium!.color
+      ..end = widget.expandedTextColor ?? theme.colorScheme.secondary;
+    _iconColorTween
+      ..begin = theme.unselectedWidgetColor
+      ..end = widget.expandedTextColor ?? theme.colorScheme.secondary;
+    _materialColorTween
+      ..begin = widget.baseColor ?? theme.canvasColor
+      ..end = widget.expandedColor ?? theme.cardColor;
+    super.didChangeDependencies();
   }
 
-  void expand() {
-    widget.expandedNotifier.value = widget.value;
-  }
-
-  void collapse() {
-    widget.expandedNotifier.value = null;
-  }
-
-  void toggleExpansion() {
-    _isExpanded ? collapse() : expand();
+  @override
+  Widget build(BuildContext context) {
+    final bool closed = !_isExpanded && _controller.isDismissed;
+    return AnimatedBuilder(
+      animation: _controller.view,
+      builder: _buildChildren,
+      child: closed ? null : widget.child,
+    );
   }
 
   Widget _buildChildren(BuildContext context, Widget? child) {
@@ -344,28 +345,26 @@ class ExpansionTileCardState extends State<ExpansionTileCard> with SingleTickerP
     );
   }
 
-  @override
-  void didChangeDependencies() {
-    final ThemeData theme = Theme.of(context);
-    _headerColorTween
-      ..begin = theme.textTheme.titleMedium!.color
-      ..end = widget.expandedTextColor ?? theme.colorScheme.secondary;
-    _iconColorTween
-      ..begin = theme.unselectedWidgetColor
-      ..end = widget.expandedTextColor ?? theme.colorScheme.secondary;
-    _materialColorTween
-      ..begin = widget.baseColor ?? theme.canvasColor
-      ..end = widget.expandedColor ?? theme.cardColor;
-    super.didChangeDependencies();
+  void _onExpansionChanged() {
+    setState(() {
+      if (_isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse().then<void>((void value) {
+          if (!mounted) return;
+          setState(() {
+            // Rebuild without widget.child.
+          });
+        });
+      }
+      PageStorage.of(context).writeState(context, _isExpanded);
+    });
+    widget.onExpansionChanged?.call(_isExpanded);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final bool closed = !_isExpanded && _controller.isDismissed;
-    return AnimatedBuilder(
-      animation: _controller.view,
-      builder: _buildChildren,
-      child: closed ? null : widget.child,
-    );
-  }
+  void expand() => expandedNotifier.value = widget.value;
+
+  void collapse() => expandedNotifier.value = null;
+
+  void toggleExpansion() => _isExpanded ? collapse() : expand();
 }
