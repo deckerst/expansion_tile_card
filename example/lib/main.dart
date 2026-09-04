@@ -1,5 +1,5 @@
 import 'package:expansion_tile_card/expansion_tile_card.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() => runApp(const MyApp());
 
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, this.title}) : super(key: key);
+  const MyHomePage({super.key, this.title});
 
   final String? title;
 
@@ -75,10 +75,8 @@ These buttons control the next card down!""",
                       ),
                     ),
                   ),
-                  ButtonBar(
+                  OverflowBar(
                     alignment: MainAxisAlignment.spaceAround,
-                    buttonHeight: 52.0,
-                    buttonMinWidth: 90.0,
                     children: <Widget>[
                       TextButton(
                         style: flatButtonStyle,
@@ -162,10 +160,8 @@ These buttons control the card above!""",
                       ),
                     ),
                   ),
-                  ButtonBar(
+                  OverflowBar(
                     alignment: MainAxisAlignment.spaceAround,
-                    buttonHeight: 52.0,
-                    buttonMinWidth: 90.0,
                     children: <Widget>[
                       TextButton(
                         style: flatButtonStyle,
